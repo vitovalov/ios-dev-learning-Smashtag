@@ -31,7 +31,8 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     // gonna return the request matching the search text
     private func twitterRequest() -> Twitter.Request? {
         if let query = searchText, !query.isEmpty {
-            return Twitter.Request(search: query, count: 100)
+//            return Twitter.Request(search: query, count: 100)
+            return Twitter.Request(search: "\(query) -filter:safe -filter:retweets", count: 100)
         }
         return nil
     }
@@ -62,6 +63,11 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension // uses AUTOlayout with help of estimatedHeight
+    }
+    
+    @IBAction func refresh(_ sender: UIRefreshControl)
+    {
+        searchForTweets()
     }
     
     @IBOutlet weak var searchTextField: UITextField! {
