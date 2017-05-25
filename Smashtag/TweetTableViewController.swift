@@ -24,7 +24,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
             tweets.removeAll()
             tableView.reloadData()
             searchForTweets()
-            title = searchText
+            title = searchText // this VC's title
         }
     }
     
@@ -61,7 +61,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
 //        searchText = "#stanford"
         
         tableView.estimatedRowHeight = tableView.rowHeight
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableViewAutomaticDimension // uses AUTOlayout with help of estimatedHeight
     }
     
     @IBOutlet weak var searchTextField: UITextField! {
@@ -70,12 +70,17 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         }
     }
     
+    // delegate method from UITextFieldDelegate. Gets called when return button is sent
+    /*
+     Asks the delegate if the text field should process the pressing of the return button.
+     The text field calls this method whenever the user taps the return button
+     */
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == searchTextField {
+        if textField == searchTextField { // make sure we point to our textField in case one day we add more
             searchText = searchTextField.text
         }
         
-        return true
+        return true // do what you normally do
     }
     
     // MARK: - UITableDataSource methods Table view data source
