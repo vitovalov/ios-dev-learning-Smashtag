@@ -21,6 +21,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         didSet {
             searchTextField?.text =  searchText
             searchTextField?.resignFirstResponder()
+            lastTwitterRequest = nil // if hashtag changes, we invalidate the last so that it not tries to get new version of the previous request
             tweets.removeAll()
             tableView.reloadData()
             searchForTweets()
@@ -31,7 +32,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     // gonna return the request matching the search text
     private func twitterRequest() -> Twitter.Request? {
         if let query = searchText, !query.isEmpty {
-//            return Twitter.Request(search: query, count: 100)
+            //            return Twitter.Request(search: query, count: 100)
             return Twitter.Request(search: "\(query) -filter:safe -filter:retweets", count: 100)
         }
         return nil
@@ -40,7 +41,8 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
     private var lastTwitterRequest: Twitter.Request?
     
     private func searchForTweets() {
-        if let request = twitterRequest() {
+        // if lastTwitterRequest has newer version, use that, if not, make another request
+        if let request = lastTwitterRequest?.newer ?? twitterRequest() {
             //            request.fetchTweets { newTweets in
             //                self.tweets.insert(newTweets, at: 0) // memory leak because user could exit this VC while the call hasn't completed yet (CLOSURE INSIDE VC)
             //            }
@@ -52,14 +54,17 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
                         self?.tweets.insert(newTweets, at: 0)
                         self?.tableView.insertSections([0], with: .fade)
                     }
+                    self?.refreshControl?.endRefreshing()
                 }
             }
+        } else {
+            self.refreshControl?.endRefreshing()
         }
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        searchText = "#stanford"
+        //        searchText = "#stanford"
         
         tableView.estimatedRowHeight = tableView.rowHeight
         tableView.rowHeight = UITableViewAutomaticDimension // uses AUTOlayout with help of estimatedHeight
@@ -104,14 +109,18 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         
         let tweet = tweets[indexPath.section][indexPath.row]
         
-//        cell.textLabel?.text = tweet.text
-//        cell.detailTextLabel?.text = tweet.user.name
-//      
+        //        cell.textLabel?.text = tweet.text
+        //        cell.detailTextLabel?.text = tweet.user.name
+        //
         if let tweetCell = cell as? TweetTableViewCell {
             tweetCell.tweet = tweet
         }
         
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return "\(tweets.count-section)" // every pull will be with named header
     }
     
     /*
