@@ -34,7 +34,7 @@ class SmashTweetersTableViewController: FetchedResultsTableViewController {
         if let context = container?.viewContext, mention != nil {
             
             let request: NSFetchRequest<TwitterUser> = TwitterUser.fetchRequest()
-            request.sortDescriptors = [NSSortDescriptor(key: "handle", ascending: true)]
+            request.sortDescriptors = [NSSortDescriptor(key: "handle", ascending: true, selector: #selector(NSString.localizedCaseInsensitiveCompare(_:)))]
             request.predicate = NSPredicate(format: "any tweets.text contains[c] %@", mention!)
             
             fetchedResultsController = NSFetchedResultsController<TwitterUser>(
@@ -56,9 +56,21 @@ class SmashTweetersTableViewController: FetchedResultsTableViewController {
         
         if let twitterUser = fetchedResultsController?.object(at: indexPath) {
             cell.textLabel?.text = twitterUser.handle
+            let tweetCount = tweetCountWithMentionBy(twitterUser)
+            cell.detailTextLabel?.text = "\(tweetCount) tweet\((tweetCount == 1) ? "" : "s" )"
         }
         
         return cell
+    }
+    
+    private func tweetCountWithMentionBy(_ twitterUser: TwitterUser) -> Int {
+        let request: NSFetchRequest<Tweet> = Tweet.fetchRequest() // making fetch request for number of tweets this twitter user has made with that search term
+        
+        // we're unwrapping mention! coz if we got down here, surely it won't be nil
+        request.predicate = NSPredicate(format: "text contains[c] %@ and tweeter = %@", mention!, twitterUser)
+        
+        // using the same context, twitterUser is in
+        return (try? twitterUser.managedObjectContext!.count(for: request)) ?? 0
     }
 }
 
