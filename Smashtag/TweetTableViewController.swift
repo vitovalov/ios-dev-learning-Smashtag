@@ -38,6 +38,12 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
         return nil
     }
     
+    // not private so that subclasses can override it
+    func insertTweets(_ newTweets: [Twitter.Tweet]) {
+        self.tweets.insert(newTweets, at: 0)
+        self.tableView.insertSections([0], with: .fade)
+    }
+    
     private var lastTwitterRequest: Twitter.Request?
     
     private func searchForTweets() {
@@ -51,8 +57,7 @@ class TweetTableViewController: UITableViewController, UITextFieldDelegate {
                 
                 DispatchQueue.main.async {
                     if request == self?.lastTwitterRequest {
-                        self?.tweets.insert(newTweets, at: 0)
-                        self?.tableView.insertSections([0], with: .fade)
+                        self?.insertTweets(newTweets)
                     }
                     self?.refreshControl?.endRefreshing()
                 }
